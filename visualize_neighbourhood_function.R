@@ -13,9 +13,9 @@ library(tidyverse)
 #'@param seu The seurat object.
 #'@param density Whether to plot the density countour plot of neighbour cells. Default is FALSE.
 #'@return A number, the average variance in coordinates of neighbour cells of a certain cell i based on the provided reduction map.
-visualize_neighbourhood = function(seu, meta_data_column, meta_data_highlight, reduction, density = F) {
+visualize_neighbourhood = function(seu, meta_data_column, meta_data_highlight, reduction, density = F, graph = "RNA_nn") {
   # all neighbour cells 
-  n = colnames(seu@graphs$RNA_nn)[colSums(seu@graphs$RNA_nn[seu[[meta_data_column]] == meta_data_highlight,]) > 0] # please change "RNA_nn" to "SCT_nn" if you are using SCTranform
+  n = colnames(seu@graphs[[graph]])[colSums(seu@graphs[[graph]][seu[[meta_data_column]] == meta_data_highlight,]) > 0] # please change "RNA_nn" to "SCT_nn" if you are using SCTranform
   
   # reduction emeddings of these neighbour cells
   Embeddings(seu, reduction = reduction) %>%
@@ -23,9 +23,10 @@ visualize_neighbourhood = function(seu, meta_data_column, meta_data_highlight, r
     mutate(neighbour = bc %in% n) -> d
   
   # matching axis names to the reduction names, please adjust it according to the real case
-  axis <- gsub("umap","UMAP",gsub("dm", "DC", reduction))           
-  axis_1 <- rlang::sym(paste0(axis, "_1")) 
-  axis_2 <- rlang::sym(paste0(axis, "_2")) 
+  axis = seu@reductions[[reduction]]@key
+  #axis <- gsub("umap","UMAP",gsub("dm", "DC", reduction))           
+  axis_1 <- rlang::sym(paste0(axis, "1")) 
+  axis_2 <- rlang::sym(paste0(axis, "2")) 
   
   if (!density){
     # plot by just highlighting these neighbour cells in the reduction map
